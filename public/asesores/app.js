@@ -2,9 +2,16 @@
 
 // Para agregar un documento: súbelo a public/docs/ y agrégalo a esta lista.
 export const DOCUMENTOS = [
-  { titulo: "Condiciones generales", desc: "Coberturas, exclusiones, periodos de espera, siniestros, pagos y cancelación. 33 páginas.", archivo: "/docs/condiciones-generales-gmx-mascotas.pdf", tipo: "PDF" },
-  { titulo: "Procedimiento de reembolso", desc: "Aviso de siniestro y documentos que pide GMX para reembolsar. 2 páginas.", archivo: "/docs/procedimiento-reembolso-siniestros.pdf", tipo: "PDF" },
-  { titulo: "Presentación del producto", desc: "Requisitos, coberturas, deducible, periodos de espera y beneficios. 10 páginas.", archivo: "/docs/presentacion-producto-2025.pdf", tipo: "PDF" },
+  { grupo: "Producto", titulo: "Condiciones generales", desc: "Coberturas, exclusiones, periodos de espera, siniestros, pagos y cancelación. 33 págs.", archivo: "/docs/condiciones-generales-gmx-mascotas.pdf" },
+  { grupo: "Producto", titulo: "Presentación del producto", desc: "Requisitos, coberturas, deducible, esperas y beneficios. 10 págs.", archivo: "/docs/presentacion-producto-2025.pdf" },
+  { grupo: "Producto", titulo: "Folleto GMX", desc: "Resumen de coberturas del seguro para mascotas. 3 págs.", archivo: "/docs/folleto-gmx.pdf" },
+  { grupo: "Póliza de ejemplo (datos personales ocultos)", titulo: "Carátula de póliza", desc: "Cómo se ve la póliza emitida: vigencia, prima, plan. 2 págs.", archivo: "/docs/ejemplo-caratula-poliza.pdf" },
+  { grupo: "Póliza de ejemplo (datos personales ocultos)", titulo: "Condiciones particulares", desc: "Especificación de coberturas, sumas y asistencias de la póliza. 12 págs.", archivo: "/docs/ejemplo-condiciones-particulares.pdf" },
+  { grupo: "Póliza de ejemplo (datos personales ocultos)", titulo: "Aviso de cobro", desc: "Recibo de primas con desglose de prima, derecho e IVA. 1 pág.", archivo: "/docs/ejemplo-aviso-de-cobro.pdf" },
+  { grupo: "Formatos", titulo: "Carta de reclamación", desc: "Formato para reclamar gastos médicos de un siniestro. 3 págs.", archivo: "/docs/carta-reclamacion.pdf" },
+  { grupo: "Formatos", titulo: "Solicitud de reembolso de beneficios", desc: "Vacuna o desparasitación, baño, estética y hospedaje. 2 págs.", archivo: "/docs/formato-reembolso-beneficios.pdf" },
+  { grupo: "Formatos", titulo: "Procedimiento de reembolso", desc: "Aviso de siniestro y documentos que pide GMX. 2 págs.", archivo: "/docs/procedimiento-reembolso-siniestros.pdf" },
+  { grupo: "Formatos", titulo: "Solicitud de alta de mascota", desc: "Cuestionario de alta del propietario y la mascota. 3 págs.", archivo: "/docs/solicitud-alta-mascota.pdf" },
 ];
 
 const DATOS = [
@@ -20,6 +27,7 @@ const DATOS = [
 
 const SUGERENCIAS = [
   "¿Qué documentos piden para un reembolso?",
+  "¿Cómo se reembolsa el baño o la vacuna?",
   "¿Se cubre una enfermedad que ya tenía antes de contratar?",
   "¿Cuánto tiempo tiene GMX para pagar un reembolso?",
   "¿Cómo se cancela una póliza y se devuelve algo?",
@@ -86,9 +94,10 @@ async function enviar(texto) {
 }
 
 export function iniciarAsesores() {
-  $("as-docs").innerHTML = DOCUMENTOS.map((d) => `
-    <div class="doc"><div class="doc-ic">${esc(d.tipo)}</div><div class="doc-tx"><b>${esc(d.titulo)}</b><span>${esc(d.desc)}</span></div>
-      <div class="doc-bt"><a class="small-btn" href="${d.archivo}" target="_blank" rel="noopener">Ver</a><a class="small-btn" href="${d.archivo}" download>Descargar</a></div></div>`).join("");
+  const grupos = [...new Set(DOCUMENTOS.map((d) => d.grupo))];
+  $("as-docs").innerHTML = grupos.map((g) => `<p class="label" style="margin:12px 0 6px">${esc(g)}</p>` + DOCUMENTOS.filter((d) => d.grupo === g).map((d) => `
+    <div class="doc"><div class="doc-ic">PDF</div><div class="doc-tx"><b>${esc(d.titulo)}</b><span>${esc(d.desc)}</span></div>
+      <div class="doc-bt"><a class="small-btn" href="${d.archivo}" target="_blank" rel="noopener">Ver</a><a class="small-btn" href="${d.archivo}" download>Descargar</a></div></div>`).join("")).join("");
   $("as-datos").innerHTML = DATOS.map(([k, v]) => `<div class="dato"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("");
   $("as-sug").innerHTML = SUGERENCIAS.map((s) => `<button class="chip" type="button">${esc(s)}</button>`).join("");
   $("as-sug").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (c) enviar(c.textContent); });
