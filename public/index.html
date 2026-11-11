@@ -75,6 +75,21 @@ details.kb{margin-top:18px}
 details.kb summary{cursor:pointer;font-weight:700;color:var(--vino)}
 details.kb pre{white-space:pre-wrap;font:500 12.5px/1.5 Quicksand;background:#fbf8f9;border-radius:10px;padding:12px;max-height:300px;overflow:auto}
 [hidden]{display:none!important}
+.chatcard{display:flex;flex-direction:column}
+.chat{flex:1;min-height:340px;max-height:60vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px;margin-bottom:10px}
+.chat .q{align-self:flex-end;background:var(--magenta);color:#fff;border-radius:14px 14px 4px 14px;padding:9px 13px;max-width:85%;white-space:pre-wrap}
+.chat .a{align-self:flex-start;background:#f7f2f5;border-radius:14px 14px 14px 4px;padding:10px 14px;max-width:92%}
+.chat .a p{margin:0 0 6px}.chat .a ul{margin:4px 0 8px;padding-left:20px}.chat .a a{color:#1a73a8}
+.chat .typing{color:var(--muted);font-size:14px}
+.spin.dark{border-color:rgba(132,8,94,.25);border-top-color:var(--vino)}
+.refine textarea{flex:1;min-height:48px}
+.side-h{font-size:18px;color:var(--vino);margin-bottom:8px}
+.doc{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
+.doc-ic{flex:none;width:42px;height:42px;border-radius:10px;background:var(--vino);color:#fff;font:800 12px Quicksand;display:grid;place-items:center}
+.doc-tx{flex:1;min-width:0}.doc-tx b{display:block}.doc-tx span{font-size:13px;color:var(--muted)}
+.doc-bt{display:flex;flex-direction:column;gap:4px}.doc-bt a{text-decoration:none;text-align:center}
+.dato{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:7px 0;font-size:14px}
+.dato span{color:var(--muted)}.dato b{text-align:right}
 .tabs{display:flex;gap:4px;margin:0 0 16px;border-bottom:2px solid var(--line)}
 .tabs button{border:0;background:none;padding:10px 16px;font:700 15px Quicksand,sans-serif;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
 .tabs button[aria-selected="true"]{color:var(--vino);border-bottom-color:var(--magenta)}
@@ -119,6 +134,7 @@ select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px
   <nav class="tabs" role="tablist">
     <button type="button" role="tab" id="t-resp" aria-selected="true">Contestador</button>
     <button type="button" role="tab" id="t-cot" aria-selected="false">Cotizador PDF</button>
+    <button type="button" role="tab" id="t-as" aria-selected="false">Asesores</button>
   </nav>
 
   <div class="codebox" id="codebox" hidden>
@@ -195,6 +211,25 @@ select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px
     </section>
   </div>
 
+
+  <div class="grid" id="tab-as" hidden>
+    <section class="card chatcard" aria-label="Chat de dudas">
+      <div class="reply-head"><h3>Dudas del producto</h3><button class="small-btn" id="as-new" type="button">Nueva conversación</button></div>
+      <div class="chat" id="as-chat" aria-live="polite"></div>
+      <div class="chips" id="as-sug"></div>
+      <div class="refine">
+        <textarea id="as-in" rows="2" placeholder="Escribe tu pregunta. Enter para enviar, Shift + Enter para salto de línea."></textarea>
+        <button class="btn primary" id="as-send" type="button">Preguntar</button>
+      </div>
+      <div class="hint" id="as-err" style="color:#a01d1d"></div>
+    </section>
+    <section class="card">
+      <h3 class="side-h">Documentos</h3>
+      <div id="as-docs"></div>
+      <h3 class="side-h" style="margin-top:20px">Datos rápidos</h3>
+      <div id="as-datos"></div>
+    </section>
+  </div>
   <div class="grid" id="tab-cot" hidden>
     <section class="card" aria-label="Datos de la cotización">
       <p class="label">Cliente *</p>
@@ -411,18 +446,21 @@ function render(d){
   $('quickRefine').addEventListener('click',e=>{ const c=e.target.closest('.chip'); if(c) doRefine(c.textContent); });
 }
 window.pgFetchJson = (url, body) => callApi(body, url);
+const SUBS={resp:'Pega el mensaje del cliente y te redacto la respuesta, lista para copiar.',cot:'Llena los datos y genera la cotización en PDF con el diseño de PetGuro.',as:'Resuelve dudas del producto y descarga las condiciones y formatos.'};
+const HASH={resp:'',cot:'#cotizador',as:'#asesores'};
 function setTab(t){
-  $('t-resp').setAttribute('aria-selected', t==='resp'); $('t-cot').setAttribute('aria-selected', t==='cot');
-  $('tab-resp').hidden = t!=='resp'; $('tab-cot').hidden = t!=='cot';
-  $('tab-sub').textContent = t==='resp' ? 'Pega el mensaje del cliente y te redacto la respuesta, lista para copiar.' : 'Llena los datos y genera la cotización en PDF con el diseño de PetGuro.';
-  try{ history.replaceState(null,'', t==='cot' ? '#cotizador' : location.pathname); }catch(e){}
+  ['resp','cot','as'].forEach(k=>{ $('t-'+k).setAttribute('aria-selected', t===k); $('tab-'+k).hidden = t!==k; });
+  $('tab-sub').textContent = SUBS[t];
+  try{ history.replaceState(null,'', HASH[t] || location.pathname); }catch(e){}
 }
-$('t-resp').onclick=()=>setTab('resp'); $('t-cot').onclick=()=>setTab('cot');
-if(location.hash==='#cotizador') setTab('cot');
+['resp','cot','as'].forEach(k=>$('t-'+k).onclick=()=>setTab(k));
+if(location.hash==='#cotizador') setTab('cot'); else if(location.hash==='#asesores') setTab('as');
 </script>
 <script type="module">
 import { iniciarCotizador } from '/cotizador/app.js';
+import { iniciarAsesores } from '/asesores/app.js';
 iniciarCotizador();
+iniciarAsesores();
 </script>
 </body>
 </html>

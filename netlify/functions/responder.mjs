@@ -8,7 +8,7 @@
 //   CLAUDE_MODEL  modelo a usar; por defecto claude-sonnet-5-5
 
 import Anthropic from "@anthropic-ai/sdk";
-import { KB, RULES } from "../lib/kb.mjs";
+import { KB, RULES, ASESOR_RULES } from "../lib/kb.mjs";
 
 const MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-5-5";
 const MAX_IMAGES = 4;
@@ -75,7 +75,7 @@ export default async (req) => {
       model: MODEL,
       max_tokens: 1500,
       system: [
-        { type: "text", text: RULES },
+        { type: "text", text: body.modo === "asesor" ? ASESOR_RULES : RULES },
         { type: "text", text: KB, cache_control: { type: "ephemeral" } },
       ],
       messages: apiMessages,
