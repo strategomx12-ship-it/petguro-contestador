@@ -96,7 +96,7 @@ svg text{font-family:Quicksand,sans-serif}
   <section id="v-met" hidden></section>
 </div>
 <script>
-if(window.self!==window.top){document.querySelector('header h1').hidden=true;document.querySelector('.wrap').style.padding='0 0 40px';document.body.style.background='transparent';}
+if(window.self!==window.top){document.querySelector('header h1').hidden=true;document.querySelector('.wrap').style.padding='0 0 40px';document.body.style.background='transparent';const _h=()=>parent.postMessage({pgLeadsH:document.documentElement.scrollHeight},location.origin);new ResizeObserver(_h).observe(document.body);addEventListener('load',_h);}
 const GRUPOS = {PAGO:'Ya pagó',A:'Grupo A · falta pago',B:'Grupo B · error al emitir',C:'Grupo C · llegó al resumen',D:'Grupo D · en el formulario',E:'Grupo E · vio planes',F:'Grupo F · sin datos'};
 const CORTO = {PAGO:'Ya pagó',A:'A',B:'B',C:'C',D:'D',E:'E',F:'F'};
 const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];

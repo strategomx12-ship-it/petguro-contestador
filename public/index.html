@@ -457,9 +457,9 @@ function setTab(t){
   $('tab-sub').textContent = SUBS[t];
   try{ history.replaceState(null,'', HASH[t] || location.pathname); }catch(e){}
 }
+addEventListener('message',e=>{ if(e.origin===location.origin&&e.data&&e.data.pgLeadsH) $('leadsframe').style.height=Math.max(e.data.pgLeadsH+20,400)+'px'; });
 function abrirLeads(){
   const f=$('leadsframe'); if(f.src) return;
-  f.onload=()=>{ try{ const doc=f.contentDocument; const fit=()=>{ f.style.height=Math.max(doc.documentElement.scrollHeight, 400)+'px'; }; new ResizeObserver(fit).observe(doc.body); fit(); }catch(e){} };
   f.src='/leads/';
 }
 ['resp','cot','as','leads'].forEach(k=>$('t-'+k).onclick=()=>setTab(k));
