@@ -74,6 +74,29 @@ textarea:focus,input:focus{outline:none;border-color:var(--turquesa);box-shadow:
 details.kb{margin-top:18px}
 details.kb summary{cursor:pointer;font-weight:700;color:var(--vino)}
 details.kb pre{white-space:pre-wrap;font:500 12.5px/1.5 Quicksand;background:#fbf8f9;border-radius:10px;padding:12px;max-height:300px;overflow:auto}
+[hidden]{display:none!important}
+.tabs{display:flex;gap:4px;margin:0 0 16px;border-bottom:2px solid var(--line)}
+.tabs button{border:0;background:none;padding:10px 16px;font:700 15px Quicksand,sans-serif;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs button[aria-selected="true"]{color:var(--vino);border-bottom-color:var(--magenta)}
+select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font:600 15px Quicksand,sans-serif;color:var(--ink);background:#fff}
+.pet-card{border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;background:#fdfbfc}
+.pet-card .row{margin-top:8px}
+.pet-head{display:flex;justify-content:space-between;align-items:center;color:var(--vino)}
+.pet-card .x{border:0;background:#f4edf1;color:var(--vino);width:26px;height:26px;border-radius:50%;font-size:16px;cursor:pointer}
+.foto-row{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.foto-row img{width:54px;height:54px;object-fit:cover;border-radius:10px}
+.checks{display:flex;flex-direction:column;gap:6px}
+.checks label{display:flex;gap:8px;align-items:center;font-weight:600}
+.checks input{width:18px;height:18px;accent-color:var(--magenta)}
+.tbl{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+.tbl th{text-align:left;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:6px 4px;border-bottom:1px solid var(--line)}
+.tbl td{padding:8px 4px;border-bottom:1px solid var(--line);font-weight:600}
+.tbl td:not(:first-child),.tbl th:not(:first-child){text-align:right}
+.tbl tr.rec td{background:#fbf3f8}
+.err-box{background:#fde2e2;color:#8d1b1b;border-radius:12px;padding:10px 14px;margin-top:12px;font-size:14px}
+.err-box ul{margin:4px 0 0;padding-left:18px}
+.ok-box{background:#dff5f4;color:#17716f;border-radius:12px;padding:10px 14px;font-size:14px}
+#cot-resumen h3{font-size:20px;color:var(--vino)}
 .codebox{position:fixed;inset:0;background:rgba(58,26,49,.45);display:grid;place-items:center;z-index:50;padding:16px}
 .codebox[hidden]{display:none}
 .codecard{background:#fff;border-radius:18px;padding:20px;max-width:360px;width:100%}
@@ -89,10 +112,14 @@ details.kb pre{white-space:pre-wrap;font:500 12.5px/1.5 Quicksand;background:#fb
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/><circle cx="9" cy="12" r=".6" fill="#fff"/><circle cx="12.5" cy="12" r=".6" fill="#fff"/><circle cx="16" cy="12" r=".6" fill="#fff"/></svg>
     </div>
     <div>
-      <h1>Contestador PetGuro</h1>
-      <p>Pega el mensaje del cliente y te redacto la respuesta, lista para copiar.</p>
+      <h1>PetGuro</h1>
+      <p id="tab-sub">Pega el mensaje del cliente y te redacto la respuesta, lista para copiar.</p>
     </div>
   </header>
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" id="t-resp" aria-selected="true">Contestador</button>
+    <button type="button" role="tab" id="t-cot" aria-selected="false">Cotizador PDF</button>
+  </nav>
 
   <div class="codebox" id="codebox" hidden>
     <div class="codecard">
@@ -103,7 +130,7 @@ details.kb pre{white-space:pre-wrap;font:500 12.5px/1.5 Quicksand;background:#fb
     </div>
   </div>
 
-  <div class="grid">
+  <div class="grid" id="tab-resp">
     <section class="card" aria-label="Mensaje del cliente">
       <p class="label">Canal</p>
       <div class="seg" id="canal">
@@ -167,6 +194,40 @@ details.kb pre{white-space:pre-wrap;font:500 12.5px/1.5 Quicksand;background:#fb
       <div id="result" hidden></div>
     </section>
   </div>
+
+  <div class="grid" id="tab-cot" hidden>
+    <section class="card" aria-label="Datos de la cotización">
+      <p class="label">Cliente *</p>
+      <input type="text" id="cot-cliente" placeholder="Nombre como aparecerá en la portada. Ej. Mauricio">
+      <p class="label" style="margin-top:16px">Mascotas</p>
+      <div id="cot-mascotas"></div>
+      <button type="button" class="btn ghost" id="cot-add" style="margin-top:8px">+ Agregar otra mascota</button>
+
+      <p class="label" style="margin-top:18px">Planes a cotizar</p>
+      <div class="checks">
+        <label><input type="checkbox" id="cot-p-segura" checked> Patita segura · $2,445</label>
+        <label><input type="checkbox" id="cot-p-super" checked> Patita super segura · $3,658</label>
+        <label><input type="checkbox" id="cot-p-premier" checked> Patita premier · $5,348</label>
+      </div>
+      <div class="row">
+        <div><p class="label">Plan recomendado</p>
+          <select id="cot-rec"><option value="segura">Patita segura</option><option value="super" selected>Patita super segura</option><option value="premier">Patita premier</option></select></div>
+        <div><p class="label">Vigencia (días)</p><input type="text" id="cot-vig" value="15" inputmode="numeric"></div>
+      </div>
+      <p class="label" style="margin-top:12px">Distribuidor</p>
+      <select id="cot-dist"></select>
+      <div class="row" id="cot-otro" hidden>
+        <div><p class="label">Nombre del distribuidor</p><input type="text" id="cot-dist-nombre"></div>
+        <div><p class="label">Link de referido</p><input type="text" id="cot-link" placeholder="petguro.com/r/R-XXX"></div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="cot-go" type="button">Generar cotización PDF</button>
+        <button class="btn ghost" id="cot-reset" type="button">Limpiar</button>
+      </div>
+      <div id="cot-ultimo" style="margin-top:12px"></div>
+    </section>
+    <section class="card" id="cot-resumen"></section>
+  </div>
 </div>
 
 <script>
@@ -227,12 +288,12 @@ fetch(API+'?kb=1').then(r=>r.ok?r.text():'').then(t=>{ if(t) $('kbview').textCon
 function fileToB64(f){
   return new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok({media_type:f.type||'image/png',data:String(r.result).split(',')[1]});r.onerror=ko;r.readAsDataURL(f);});
 }
-async function callApi(body){
-  const r = await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','x-access-code':code},body:JSON.stringify(body)});
+async function callApi(body, url){
+  const r = await fetch(url||API,{method:'POST',headers:{'Content-Type':'application/json','x-access-code':code},body:JSON.stringify(body)});
   if(r.status===401){
     const c = await askCode(); if(!c) throw {code:'not_granted'};
     code=c; try{localStorage.setItem('pg-code',c)}catch(e){}
-    return callApi(body);
+    return callApi(body, url);
   }
   if(r.status===429) throw {code:'rate_limited'};
   if(!r.ok) throw {code:'server', message: await r.text()};
@@ -349,6 +410,19 @@ function render(d){
   $('refineIn').addEventListener('keydown',e=>{ if(e.key==='Enter') doRefine(e.target.value); });
   $('quickRefine').addEventListener('click',e=>{ const c=e.target.closest('.chip'); if(c) doRefine(c.textContent); });
 }
+window.pgFetchJson = (url, body) => callApi(body, url);
+function setTab(t){
+  $('t-resp').setAttribute('aria-selected', t==='resp'); $('t-cot').setAttribute('aria-selected', t==='cot');
+  $('tab-resp').hidden = t!=='resp'; $('tab-cot').hidden = t!=='cot';
+  $('tab-sub').textContent = t==='resp' ? 'Pega el mensaje del cliente y te redacto la respuesta, lista para copiar.' : 'Llena los datos y genera la cotización en PDF con el diseño de PetGuro.';
+  try{ history.replaceState(null,'', t==='cot' ? '#cotizador' : location.pathname); }catch(e){}
+}
+$('t-resp').onclick=()=>setTab('resp'); $('t-cot').onclick=()=>setTab('cot');
+if(location.hash==='#cotizador') setTab('cot');
+</script>
+<script type="module">
+import { iniciarCotizador } from '/cotizador/app.js';
+iniciarCotizador();
 </script>
 </body>
 </html>

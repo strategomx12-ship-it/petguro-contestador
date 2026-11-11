@@ -7,6 +7,8 @@ Página donde pegas el mensaje de un cliente (o una captura del chat) y te redac
 ```
 petguro-contestador/
 ├── public/index.html               La página (lo que ve tu equipo)
+├── public/cotizador/               Cotizador PDF: plantilla, fotos, logos y motor (cotizacion.js)
+├── netlify/functions/folio.mjs     Asigna folios PG-AAMMDD-NNNN (continúa desde el 0014) en Netlify Blobs
 ├── netlify/functions/responder.mjs Llama a Claude con tu clave (nunca se expone en la página)
 ├── netlify/lib/kb.mjs              Base de conocimiento y reglas: edítalo para actualizar lo que sabe
 ├── netlify.toml                    Configuración de Netlify
@@ -52,3 +54,13 @@ Edita `netlify/lib/kb.mjs` (precios, coberturas, reglas de estilo) y vuelve a ha
 
 - Las capturas se mandan a Claude solo para leer la conversación; no se guardan.
 - Si cambias el código de acceso, cada persona tendrá que escribir el nuevo la próxima vez.
+
+## Cotizador PDF
+
+Pestaña "Cotizador PDF" (o `/#cotizador`). Llenas cliente y una o varias mascotas, eliges planes, plan recomendado, vigencia y distribuidor, y se abre la cotización de 3 páginas lista para "Guardar como PDF".
+
+- Precios fijos (anuales, IVA incluido) en `public/cotizador/cotizacion.js` → `PRECIOS`.
+- Distribuidores en el mismo archivo → `DISTRIBUIDORES`.
+- Solo gatos: portada y fotos de gato. Solo perros: husky y fotos de perro. Mixto: husky y 4 fotos.
+- Valida edad de 2 meses a 9 años 11 meses. Si falta raza, sexo o color sale "Por confirmar".
+- El folio se guarda por cliente + mascotas: si regeneras la misma cotización, conserva folio y fecha.
