@@ -8,7 +8,7 @@
 //   CLAUDE_MODEL  modelo a usar; por defecto claude-sonnet-5-5
 
 import Anthropic from "@anthropic-ai/sdk";
-import { KB, RULES } from "./kb.mjs";
+import { KB, RULES } from "../lib/kb.mjs";
 
 const MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-5-5";
 const MAX_IMAGES = 4;

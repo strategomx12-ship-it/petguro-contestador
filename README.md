@@ -8,7 +8,7 @@ Página donde pegas el mensaje de un cliente (o una captura del chat) y te redac
 petguro-contestador/
 ├── public/index.html               La página (lo que ve tu equipo)
 ├── netlify/functions/responder.mjs Llama a Claude con tu clave (nunca se expone en la página)
-├── netlify/functions/kb.mjs        Base de conocimiento y reglas: edítalo para actualizar lo que sabe
+├── netlify/lib/kb.mjs              Base de conocimiento y reglas: edítalo para actualizar lo que sabe
 ├── netlify.toml                    Configuración de Netlify
 └── README.md
 ```
@@ -35,7 +35,7 @@ npx netlify-cli link --id 09159db7-055e-4952-9620-ef5c20135738
 npx netlify-cli deploy --prod
 ```
 
-Cada vez que cambies algo (por ejemplo `kb.mjs`), repite solo el último comando.
+Cada vez que cambies algo (por ejemplo `netlify/lib/kb.mjs`), repite solo el último comando.
 
 ## Variables de entorno
 
@@ -46,7 +46,7 @@ Cada vez que cambies algo (por ejemplo `kb.mjs`), repite solo el último comando
 
 ## Actualizar la base de conocimiento
 
-Edita `netlify/functions/kb.mjs` (precios, coberturas, reglas de estilo) y vuelve a hacer deploy. La página toma los cambios en automático; el apartado "Lo que sabe el asistente" muestra la versión publicada.
+Edita `netlify/lib/kb.mjs` (precios, coberturas, reglas de estilo) y vuelve a hacer deploy. La página toma los cambios en automático; el apartado "Lo que sabe el asistente" muestra la versión publicada.
 
 ## Notas
 
