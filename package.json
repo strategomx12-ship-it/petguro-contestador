@@ -1,0 +1,8 @@
+{
+  "name": "petguro-contestador",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest"
+  }
+}
