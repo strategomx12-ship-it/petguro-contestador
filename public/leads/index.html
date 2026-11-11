@@ -41,6 +41,12 @@ select{font:700 14px Quicksand,sans-serif;color:var(--ink);background:#fff;borde
 .row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .btn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:7px 12px;font:700 13px Quicksand,sans-serif;color:var(--ink);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
 .btn.wa{background:#25D366;border-color:#25D366;color:#fff}.btn.ok{border-color:var(--turquesa);color:#1f8c8b}
+.btn.refresh{background:var(--magenta);border-color:var(--magenta);color:#fff}.btn.refresh:disabled{opacity:.6;cursor:default}
+.btn.nowa{color:#a01d1d;border-color:#f3c9c9}.btn.nowa.on{background:#fde2e2}
+.tag.sinwa{background:#fde2e2;color:#a01d1d}
+.card.sinwa{border-color:#f3c9c9;background:#fffafa}
+.alt{margin-top:10px;font-size:13px;background:#fff1f1;border-radius:10px;padding:8px 10px;color:#7a2020}
+.upd{font-size:12.5px;color:var(--muted)}
 .nota{margin-top:10px;font-size:13px;background:#fbf6ea;border-radius:10px;padding:8px 10px;color:#6b5414}
 .empty{text-align:center;color:var(--muted);padding:50px 10px}.empty b{display:block;font-family:"Baloo 2";font-size:20px;color:var(--vino)}
 /* métricas */
@@ -80,7 +86,10 @@ svg text{font-family:Quicksand,sans-serif}
       <option value="pend">Por enviar</option>
       <option value="todos">Todos</option>
       <option value="env">Enviados</option>
+      <option value="sinwa">Sin WhatsApp</option>
     </select>
+    <button class="btn refresh" id="refresh" type="button">↻ Actualizar</button>
+    <span class="upd" id="upd"></span>
     <select id="dest" aria-label="Abrir en">
       <option value="web">Abrir en WhatsApp Web</option>
       <option value="app">Abrir en la app del celular</option>
@@ -101,7 +110,7 @@ const GRUPOS = {PAGO:'Ya pagó',A:'Grupo A · falta pago',B:'Grupo B · error al
 const CORTO = {PAGO:'Ya pagó',A:'A',B:'B',C:'C',D:'D',E:'E',F:'F'};
 const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-let data=null, overrides={}, grupo='todos', tab='msg';
+let data=null, overrides={}, sinwa={}, grupo='todos', tab='msg';
 const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 let dest=(()=>{try{return localStorage.getItem('pg-dest')}catch(e){return null}})()||(isMobile?'app':'web');
 function waLink(tel,text){const n='52'+String(tel).replace(/\D/g,'').slice(-10),t=encodeURIComponent(text||'');return dest==='web'?`https://web.whatsapp.com/send?phone=${n}&text=${t}`:`https://wa.me/${n}?text=${t}`;}
@@ -115,6 +124,7 @@ const fmtDay=k=>{const x=d(k+'T12:00');return DIAS[x.getDay()]+' '+x.getDate()+'
 const fmtShort=k=>{const x=d(k+'T12:00');return x.getDate()+' '+MESES[x.getMonth()];};
 const hora=s=>s.slice(11,16);
 const isSent=l=>(l.id in overrides)?overrides[l.id]:!!l.enviado;
+const isNoWa=l=>!!sinwa[l.id];
 const money=n=>'$'+n.toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0});
 
 let code=(()=>{try{return localStorage.getItem('pg-code')||''}catch(e){return ''}})();
@@ -125,16 +135,35 @@ async function api(method,body,retry){
   if(!r.ok)throw new Error(j.error||('Error '+r.status));
   return j;
 }
-async function load(){
-  try{ data=await api('GET'); }
-  catch(e){ document.getElementById('meta').textContent=e.message||'No se pudo cargar la información.'; return; }
+async function traer(){
+  data=await api('GET');
   overrides=Object.assign({}, data.enviados||{}, store.get());
-  document.getElementById('meta').textContent='Último reporte: '+(data.ultimo_reporte||'')+' · actualizado '+(data.actualizado||'');
-  // semanas
+  sinwa=Object.assign({}, data.sinwa||{});
+  Object.keys(sinwa).forEach(k=>{if(!sinwa[k])delete sinwa[k];});
+  document.getElementById('meta').textContent='Último reporte: '+(data.ultimo_reporte||'')+' · leads actualizados '+(data.actualizado||'');
+  const t=new Date();document.getElementById('upd').textContent='Revisado a las '+t.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+}
+async function actualizar(){
+  const b=document.getElementById('refresh'),antes=new Set(data.leads.map(l=>l.id));b.disabled=true;b.textContent='Actualizando…';
+  try{
+    await traer();
+    const nuevos=data.leads.filter(l=>!antes.has(l.id)).length;
+    rebuildWeeks();render();
+    document.getElementById('upd').textContent+=nuevos?` · ${nuevos} lead${nuevos>1?'s':''} nuevo${nuevos>1?'s':''}`:' · sin leads nuevos';
+  }catch(e){document.getElementById('upd').textContent=e.message||'No se pudo actualizar';}
+  b.disabled=false;b.textContent='↻ Actualizar';
+}
+function rebuildWeeks(){
+  const sel=document.getElementById('week'),prev=sel.value||'all';
   const weeks=[...new Set(data.leads.map(l=>iso(monday(d(l.fecha)))))].sort().reverse();
-  const sel=document.getElementById('week');
   sel.innerHTML=weeks.map((w,i)=>{const a=d(w+'T12:00'),b=new Date(a);b.setDate(b.getDate()+6);return `<option value="${w}">${i===0?'Esta semana · ':''}${a.getDate()} ${MESES[a.getMonth()]} – ${b.getDate()} ${MESES[b.getMonth()]}</option>`}).join('')+'<option value="all">Todas las semanas</option>';
-  sel.value='all'; sel.onchange=render;
+  sel.value=[...sel.options].some(o=>o.value===prev)?prev:'all';
+}
+async function load(){
+  try{ await traer(); }
+  catch(e){ document.getElementById('meta').textContent=e.message||'No se pudo cargar la información.'; return; }
+  document.getElementById('refresh').onclick=actualizar;
+  rebuildWeeks(); document.getElementById('week').onchange=render;
   const ds=document.getElementById('dest'); ds.value=dest; ds.onchange=()=>{dest=ds.value;try{localStorage.setItem('pg-dest',dest)}catch(e){};render();}; document.getElementById('estado').onchange=render;
   document.getElementById('t-msg').onclick=()=>setTab('msg');
   document.getElementById('t-met').onclick=()=>setTab('met');
@@ -153,30 +182,32 @@ function renderMsg(){
   const ch=document.getElementById('chips');
   ch.innerHTML=['todos',...present].map(g=>`<button type="button" data-g="${g}" aria-pressed="${grupo===g}">${g==='todos'?'Todos':CORTO[g]} (${g==='todos'?base.length:base.filter(l=>l.grupo===g).length})</button>`).join('');
   ch.querySelectorAll('button').forEach(b=>b.onclick=()=>{grupo=b.dataset.g;renderMsg();});
-  const sentN=base.filter(isSent).length;
-  document.getElementById('pbar').style.width=base.length?(sentN/base.length*100)+'%':'0';
-  document.getElementById('ptext').textContent=base.length?`${sentN} de ${base.length} enviados en este periodo`:'';
-  let rows=base.filter(l=>grupo==='todos'||l.grupo===grupo).filter(l=>est==='todos'||(est==='env'?isSent(l):!isSent(l)));
+  const sentN=base.filter(isSent).length, nwN=base.filter(l=>isNoWa(l)&&!isSent(l)).length;
+  document.getElementById('pbar').style.width=base.length?((sentN+nwN)/base.length*100)+'%':'0';
+  document.getElementById('ptext').textContent=base.length?`${sentN} de ${base.length} enviados en este periodo`+(nwN?` · ${nwN} sin WhatsApp`:''):'';
+  let rows=base.filter(l=>grupo==='todos'||l.grupo===grupo).filter(l=>est==='todos'||(est==='env'?isSent(l):est==='sinwa'?isNoWa(l):(!isSent(l)&&!isNoWa(l))));
   rows.sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const list=document.getElementById('list');
-  if(!rows.length){list.innerHTML=`<div class="empty"><b>${est==='pend'?'¡Todo enviado!':'Sin leads'}</b>${est==='pend'?'No quedan mensajes pendientes en este periodo.':'No hay leads con estos filtros.'}</div>`;return;}
+  if(!rows.length){list.innerHTML=`<div class="empty"><b>${est==='pend'?'¡Todo enviado!':est==='sinwa'?'Ninguno marcado':'Sin leads'}</b>${est==='pend'?'No quedan mensajes pendientes en este periodo.':'No hay leads con estos filtros.'}</div>`;return;}
   let html='',last='';
   rows.forEach(l=>{
     const k=dayKey(l.fecha); if(k!==last){html+=`<div class="day">${fmtDay(k)}</div>`;last=k;}
-    const msgs=(l.mensajes||[]).filter(Boolean), done=isSent(l);
+    const msgs=(l.mensajes||[]).filter(Boolean), done=isSent(l), nw=isNoWa(l), tel10=String(l.telefono||'').replace(/\D/g,'').slice(-10);
     const wa=waLink(l.telefono,msgs[0]);
-    html+=`<div class="card ${done?'done':''}">
+    html+=`<div class="card ${done?'done':''} ${nw?'sinwa':''}">
       <div class="top"><div>
         <div class="who">${esc(l.nombre||'Sin nombre')} <span>· ${esc(l.mascota)}</span></div>
-        <div class="tags"><span class="tag g-${l.grupo}">${esc(GRUPOS[l.grupo]||l.grupo)}</span>${l.plan?`<span class="tag">${esc(l.plan)}</span>`:''}<span class="tag">${esc(l.origen||'')}</span><span class="tag">${hora(l.fecha)} h</span></div>
-        <div class="phone">${esc(l.telefono)} <button class="btn" data-copy="${esc(l.telefono)}" type="button">Copiar número</button></div>
+        <div class="tags"><span class="tag g-${l.grupo}">${esc(GRUPOS[l.grupo]||l.grupo)}</span>${l.plan?`<span class="tag">${esc(l.plan)}</span>`:''}<span class="tag">${esc(l.origen||'')}</span><span class="tag">${hora(l.fecha)} h</span>${nw?'<span class="tag sinwa">Sin WhatsApp</span>':''}</div>
+        <div class="phone">${esc(l.telefono)} <button class="btn" data-copy="${esc(l.telefono)}" type="button">Copiar número</button><button class="btn nowa ${nw?'on':''}" data-nowa="${esc(l.id)}" type="button">${nw?'Sí tiene WhatsApp':'No tiene WhatsApp'}</button></div>
       </div><label class="chk"><input type="checkbox" ${done?'checked':''} data-id="${esc(l.id)}"> Enviado</label></div>
       ${msgs.map((m,j)=>`<div class="msg">${esc(m)}</div><div class="row">${j===0?`<a class="btn wa" href="${wa}" target="_blank" rel="noopener">Abrir en WhatsApp</a>`:''}<button class="btn" data-copy="${esc(m)}" type="button">Copiar mensaje${msgs.length>1?' '+(j+1):''}</button></div>`).join('')}
+      ${nw?`<div class="alt">Este número no aparece en WhatsApp. Puedes mandarle el mensaje por SMS o llamarle.<div class="row"><a class="btn" href="sms:+52${tel10}${/iPhone|iPad|iPod/i.test(navigator.userAgent)?'&':'?'}body=${encodeURIComponent(msgs.join('\n\n'))}">Mandar SMS</a><a class="btn" href="tel:+52${tel10}">Llamar</a></div></div>`:''}
       ${l.nota?`<div class="nota">📝 ${esc(l.nota)}</div>`:''}
     </div>`;
   });
   list.innerHTML=html;
   list.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const t=b.dataset.copy,lab=b.textContent;try{await navigator.clipboard.writeText(t);b.textContent='¡Copiado!';b.classList.add('ok')}catch(e){b.textContent='No se pudo copiar'}setTimeout(()=>{b.textContent=lab;b.classList.remove('ok')},1500)});
+  list.querySelectorAll('[data-nowa]').forEach(b=>b.onclick=()=>{const id=b.dataset.nowa,v=!sinwa[id];if(v)sinwa[id]=true;else delete sinwa[id];renderMsg();api('POST',{id,sinwa:v}).catch(()=>{});});
   list.querySelectorAll('[data-id]').forEach(c=>c.onchange=()=>{const id=c.dataset.id,v=c.checked;overrides[id]=v;const loc=store.get();loc[id]=v;store.set(loc);renderMsg();api('POST',{id,enviado:v}).then(()=>{const l2=store.get();delete l2[id];store.set(l2);}).catch(()=>{});});
 }
 
@@ -207,6 +238,7 @@ function renderMet(){
     <div class="kpi"><div class="l">Pagadas</div><div class="n">${pag.length}</div><div class="s">${n?(pag.length/n*100).toFixed(1):0}% de los leads</div></div>
     <div class="kpi"><div class="l">Prima pagada</div><div class="n">${money(prima)}</div><div class="s">anual, con IVA</div></div>
     <div class="kpi"><div class="l">Por cobrar</div><div class="n">${money(L.filter(l=>l.grupo==='A').reduce((s,l)=>s+(l.precio||0),0))}</div><div class="s">${L.filter(l=>l.grupo==='A').length} pólizas emitidas sin pago</div></div>
+    <div class="kpi"><div class="l">Sin WhatsApp</div><div class="n">${L.filter(isNoWa).length}</div><div class="s">números que no están en WhatsApp</div></div>
     <div class="kpi"><div class="l">Mensajes enviados</div><div class="n">${n?Math.round(sent/n*100):0}%</div><div class="s">${sent} de ${n}</div></div>
   </div>
   <div class="panel"><h3>Leads por día</h3><p class="sub">Cuándo dejaron sus datos. Pasa el cursor o toca una barra para ver el número.</p><div class="vchart" id="vc"></div></div>

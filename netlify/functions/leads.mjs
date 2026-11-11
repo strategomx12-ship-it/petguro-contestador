@@ -1,7 +1,7 @@
 // Seguimiento de leads.
 // GET  → descifra leads.enc de la rama "datos" (lo actualiza la tarea diaria que lee Outlook)
 //        y le suma las marcas de "Enviado" guardadas en Netlify Blobs (compartidas entre equipos).
-// POST {id, enviado} → guarda la marca de "Enviado" de un lead.
+// POST {id, enviado} o {id, sinwa} → guarda la marca de "Enviado" o de "No tiene WhatsApp" de un lead.
 // Todo requiere el código de acceso del contestador.
 
 import { getStore } from "@netlify/blobs";
@@ -40,8 +40,8 @@ export default async (req) => {
   if (req.method === "GET") {
     try {
       const { data, sellado } = await leerLeads();
-      const enviados = (await store.get("enviados", { type: "json" })) || {};
-      return json({ ...data, sellado, enviados });
+      const [enviados, sinwa] = await Promise.all([store.get("enviados", { type: "json" }), store.get("sinwa", { type: "json" })]);
+      return json({ ...data, sellado, enviados: enviados || {}, sinwa: sinwa || {} });
     } catch (e) {
       return json({ error: e.message || "Error al cargar los leads" }, 500);
     }
@@ -52,9 +52,13 @@ export default async (req) => {
     try { b = await req.json(); } catch { return json({ error: "Solicitud inválida" }, 400); }
     const id = String(b.id || "").slice(0, 200);
     if (!id) return json({ error: "Falta el id" }, 400);
-    const enviados = (await store.get("enviados", { type: "json" })) || {};
-    enviados[id] = !!b.enviado;
-    await store.setJSON("enviados", enviados);
+    for (const campo of ["enviado", "sinwa"]) {
+      if (!(campo in b)) continue;
+      const clave = campo === "enviado" ? "enviados" : "sinwa";
+      const m = (await store.get(clave, { type: "json" })) || {};
+      if (b[campo]) m[id] = true; else if (campo === "enviado") m[id] = false; else delete m[id];
+      await store.setJSON(clave, m);
+    }
     return json({ ok: true });
   }
 
