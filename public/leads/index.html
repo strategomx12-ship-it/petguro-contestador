@@ -47,6 +47,10 @@ select{font:700 14px Quicksand,sans-serif;color:var(--ink);background:#fff;borde
 .card.sinwa{border-color:#f3c9c9;background:#fffafa}
 .alt{margin-top:10px;font-size:13px;background:#fff1f1;border-radius:10px;padding:8px 10px;color:#7a2020}
 .upd{font-size:12.5px;color:var(--muted)}
+.lock{max-width:360px;margin:40px auto;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;text-align:center}
+.lock h2{color:var(--vino);font-size:22px;margin-bottom:6px}.lock p{color:var(--muted);font-size:14px;margin:0 0 14px}
+.lock input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;font:600 15px Quicksand,sans-serif;margin-bottom:10px}
+.lock .err{color:#a01d1d;font-size:13px;min-height:18px;margin-bottom:6px}
 .nota{margin-top:10px;font-size:13px;background:#fbf6ea;border-radius:10px;padding:8px 10px;color:#6b5414}
 .empty{text-align:center;color:var(--muted);padding:50px 10px}.empty b{display:block;font-family:"Baloo 2";font-size:20px;color:var(--vino)}
 /* métricas */
@@ -76,6 +80,14 @@ svg text{font-family:Quicksand,sans-serif}
     <h1>Seguimiento de leads</h1>
     <div class="meta" id="meta">Cargando…</div>
   </header>
+  <form class="lock" id="lock" hidden>
+    <h2>🔒 Leads</h2>
+    <p>Esta sección tiene contraseña.</p>
+    <input type="password" id="lockin" autocomplete="off" placeholder="Contraseña">
+    <div class="err" id="lockerr"></div>
+    <button class="btn refresh" type="submit" style="width:100%;justify-content:center;padding:11px">Entrar</button>
+  </form>
+  <div id="contenido">
   <div class="tabs" role="tablist">
     <button role="tab" id="t-msg" aria-selected="true">Mensajes</button>
     <button role="tab" id="t-met" aria-selected="false">Gráficas y métricas</button>
@@ -103,6 +115,7 @@ svg text{font-family:Quicksand,sans-serif}
     <main id="list"></main>
   </section>
   <section id="v-met" hidden></section>
+  </div>
 </div>
 <script>
 if(window.self!==window.top){document.querySelector('header h1').hidden=true;document.querySelector('.wrap').style.padding='0 0 40px';document.body.style.background='transparent';let _last=0;const _h=()=>{const h=document.querySelector('.wrap').scrollHeight+60;if(Math.abs(h-_last)>4){_last=h;parent.postMessage({pgLeadsH:h},location.origin);}};new ResizeObserver(_h).observe(document.body);setInterval(_h,700);}
@@ -128,11 +141,12 @@ const isNoWa=l=>!!sinwa[l.id];
 const money=n=>'$'+n.toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0});
 
 let code=(()=>{try{return localStorage.getItem('pg-code')||''}catch(e){return ''}})();
+let lpass=(()=>{try{return localStorage.getItem('pg-leads-pass')||''}catch(e){return ''}})();
 async function api(method,body,retry){
-  const r=await fetch('/api/leads',{method,cache:'no-store',headers:{'Content-Type':'application/json','x-access-code':code},body:body?JSON.stringify(body):undefined});
+  const r=await fetch('/api/leads',{method,cache:'no-store',headers:{'Content-Type':'application/json','x-access-code':code,'x-leads-pass':lpass},body:body?JSON.stringify(body):undefined});
   if(r.status===401&&!retry){const c=prompt('Código de acceso del contestador:');if(!c)throw new Error('Falta el código de acceso.');code=c.trim();try{localStorage.setItem('pg-code',code)}catch(e){}return api(method,body,true);}
   const j=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(j.error||('Error '+r.status));
+  if(!r.ok){const e=new Error(j.error||('Error '+r.status));e.need=j.need;throw e;}
   return j;
 }
 async function traer(){
@@ -159,9 +173,19 @@ function rebuildWeeks(){
   sel.innerHTML=weeks.map((w,i)=>{const a=d(w+'T12:00'),b=new Date(a);b.setDate(b.getDate()+6);return `<option value="${w}">${i===0?'Esta semana · ':''}${a.getDate()} ${MESES[a.getMonth()]} – ${b.getDate()} ${MESES[b.getMonth()]}</option>`}).join('')+'<option value="all">Todas las semanas</option>';
   sel.value=[...sel.options].some(o=>o.value===prev)?prev:'all';
 }
+function pedirPass(msg){
+  document.getElementById('contenido').hidden=true; document.getElementById('meta').textContent='';
+  const f=document.getElementById('lock'), i=document.getElementById('lockin');
+  f.hidden=false; document.getElementById('lockerr').textContent=msg||''; i.value=''; i.focus();
+  f.onsubmit=ev=>{ ev.preventDefault(); lpass=i.value.trim(); if(!lpass) return; try{localStorage.setItem('pg-leads-pass',lpass)}catch(e){} load(); };
+}
 async function load(){
   try{ await traer(); }
-  catch(e){ document.getElementById('meta').textContent=e.message||'No se pudo cargar la información.'; return; }
+  catch(e){
+    if(e.need==='leads-pass'){ pedirPass(lpass?'Contraseña incorrecta.':''); return; }
+    document.getElementById('meta').textContent=e.message||'No se pudo cargar la información.'; return;
+  }
+  document.getElementById('lock').hidden=true; document.getElementById('contenido').hidden=false;
   document.getElementById('refresh').onclick=actualizar;
   rebuildWeeks(); document.getElementById('week').onchange=render;
   const ds=document.getElementById('dest'); ds.value=dest; ds.onchange=()=>{dest=ds.value;try{localStorage.setItem('pg-dest',dest)}catch(e){};render();}; document.getElementById('estado').onchange=render;

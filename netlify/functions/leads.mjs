@@ -2,7 +2,7 @@
 // GET  → descifra leads.enc de la rama "datos" (lo actualiza la tarea diaria que lee Outlook)
 //        y le suma las marcas de "Enviado" guardadas en Netlify Blobs (compartidas entre equipos).
 // POST {id, enviado} o {id, sinwa} → guarda la marca de "Enviado" o de "No tiene WhatsApp" de un lead.
-// Todo requiere el código de acceso del contestador.
+// Todo requiere el código de acceso del contestador y además la contraseña de Leads (LEADS_PASSWORD).
 
 import { getStore } from "@netlify/blobs";
 import { createDecipheriv, privateDecrypt, constants } from "node:crypto";
@@ -35,6 +35,8 @@ async function leerLeads() {
 export default async (req) => {
   const required = process.env.ACCESS_CODE;
   if (required && req.headers.get("x-access-code") !== required) return json({ error: "Código de acceso incorrecto" }, 401);
+  const extra = process.env.LEADS_PASSWORD;
+  if (extra && req.headers.get("x-leads-pass") !== extra) return json({ error: "Contraseña de Leads incorrecta", need: "leads-pass" }, 403);
   const store = getStore({ name: "leads", consistency: "strong" });
 
   if (req.method === "GET") {
