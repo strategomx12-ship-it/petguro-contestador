@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguimiento de leads PetGuro</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--crema:#F0EEED;--amarillo:#F4D892;--magenta:#A34687;--turquesa:#35BBBA;--vino:#84085E;--ink:#3a1a31;--muted:#7a6273;--line:#e6dde0;--grid:#eee6e9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--crema);color:var(--ink);font:500 15px/1.45 Quicksand,system-ui,sans-serif}
+h1,h2,h3{font-family:"Baloo 2",sans-serif;margin:0;line-height:1.15}
+.wrap{max-width:820px;margin:0 auto;padding:18px 14px 70px}
+header h1{font-size:26px;color:var(--vino)}
+.meta{color:var(--muted);font-size:13px;margin-top:2px}
+.tabs{display:flex;gap:4px;margin:16px 0 0;border-bottom:2px solid var(--line)}
+.tabs button{border:0;background:none;padding:10px 16px;font:700 15px Quicksand,sans-serif;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs button[aria-selected="true"]{color:var(--vino);border-bottom-color:var(--magenta)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 8px}
+select{font:700 14px Quicksand,sans-serif;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:7px 10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font:700 13px Quicksand,sans-serif;color:var(--ink);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--magenta);border-color:var(--magenta);color:#fff}
+.progress{margin:6px 0 4px;background:#fff;border:1px solid var(--line);border-radius:999px;height:10px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--turquesa);width:0;transition:width .3s}
+.ptext{font-size:13px;color:var(--muted)}
+.avisos{background:#fffaf0;border:1px solid #f1e3bf;border-radius:14px;padding:10px 14px;margin:12px 0;font-size:14px}
+.avisos b{color:#8a6a12}.avisos ul{margin:6px 0 0;padding-left:18px}
+.day{font:700 13px Quicksand;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:20px 0 4px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin:8px 0}
+.card.done{opacity:.55}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.who{font-weight:700;font-size:16px}.who span{color:var(--muted);font-weight:600}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.tag{font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;background:#f4edf1;color:var(--vino)}
+.tag.g-PAGO{background:#dff5f4;color:#17716f}.tag.g-A,.tag.g-B{background:var(--amarillo);color:var(--vino)}
+.phone{display:flex;gap:6px;align-items:center;margin-top:6px;font-size:14px;color:var(--muted)}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--turquesa)}
+.msg{margin-top:10px;background:#e7f8e3;border-radius:12px 12px 4px 12px;padding:10px 12px;white-space:pre-wrap}
+.row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.btn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:7px 12px;font:700 13px Quicksand,sans-serif;color:var(--ink);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn.wa{background:#25D366;border-color:#25D366;color:#fff}.btn.ok{border-color:var(--turquesa);color:#1f8c8b}
+.nota{margin-top:10px;font-size:13px;background:#fbf6ea;border-radius:10px;padding:8px 10px;color:#6b5414}
+.empty{text-align:center;color:var(--muted);padding:50px 10px}.empty b{display:block;font-family:"Baloo 2";font-size:20px;color:var(--vino)}
+/* métricas */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.kpi .l{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.kpi .n{font-family:"Baloo 2";font-size:28px;color:var(--vino);line-height:1.1;margin-top:2px}
+.kpi .s{font-size:12px;color:var(--muted)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:12px 0}
+.panel h3{font-size:17px;color:var(--vino)}
+.panel p.sub{margin:2px 0 10px;font-size:13px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}}
+.hbar{display:grid;grid-template-columns:120px 1fr 44px;align-items:center;gap:8px;margin:6px 0;font-size:13.5px;position:relative}
+.hbar .t{background:var(--grid);border-radius:4px;height:16px;position:relative}
+.hbar .f{position:absolute;left:0;top:0;bottom:0;background:var(--magenta);border-radius:0 4px 4px 0;min-width:2px}
+.hbar .v{text-align:right;font-weight:700}
+.hbar:hover .f{background:var(--vino)}
+.vchart{position:relative}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:#fff;font-size:12px;border-radius:8px;padding:5px 8px;white-space:nowrap;transform:translate(-50%,-110%);display:none;z-index:5}
+svg text{font-family:Quicksand,sans-serif}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Seguimiento de leads</h1>
+    <div class="meta" id="meta">Cargando…</div>
+  </header>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="t-msg" aria-selected="true">Mensajes</button>
+    <button role="tab" id="t-met" aria-selected="false">Gráficas y métricas</button>
+  </div>
+  <div class="bar">
+    <select id="week" aria-label="Semana"></select>
+    <select id="estado" aria-label="Estado">
+      <option value="pend">Por enviar</option>
+      <option value="todos">Todos</option>
+      <option value="env">Enviados</option>
+    </select>
+    <select id="dest" aria-label="Abrir en">
+      <option value="web">Abrir en WhatsApp Web</option>
+      <option value="app">Abrir en la app del celular</option>
+    </select>
+  </div>
+  <section id="v-msg">
+    <div class="chips" id="chips"></div>
+    <div class="progress"><i id="pbar"></i></div>
+    <div class="ptext" id="ptext"></div>
+    <div id="avisos"></div>
+    <main id="list"></main>
+  </section>
+  <section id="v-met" hidden></section>
+</div>
+<script>
+if(window.self!==window.top){document.querySelector('header h1').hidden=true;document.querySelector('.wrap').style.padding='0 0 40px';document.body.style.background='transparent';}
+const GRUPOS = {PAGO:'Ya pagó',A:'Grupo A · falta pago',B:'Grupo B · error al emitir',C:'Grupo C · llegó al resumen',D:'Grupo D · en el formulario',E:'Grupo E · vio planes',F:'Grupo F · sin datos'};
+const CORTO = {PAGO:'Ya pagó',A:'A',B:'B',C:'C',D:'D',E:'E',F:'F'};
+const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+let data=null, overrides={}, grupo='todos', tab='msg';
+const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+let dest=(()=>{try{return localStorage.getItem('pg-dest')}catch(e){return null}})()||(isMobile?'app':'web');
+function waLink(tel,text){const n='52'+String(tel).replace(/\D/g,'').slice(-10),t=encodeURIComponent(text||'');return dest==='web'?`https://web.whatsapp.com/send?phone=${n}&text=${t}`:`https://wa.me/${n}?text=${t}`;}
+const store={get(){try{return JSON.parse(localStorage.getItem('pg-enviados-pend')||'{}')}catch(e){return{}}},set(v){try{localStorage.setItem('pg-enviados-pend',JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const d=s=>new Date(s.length<=16?s+':00':s);
+const dayKey=s=>s.slice(0,10);
+function monday(dt){const x=new Date(dt);x.setHours(0,0,0,0);const w=(x.getDay()+6)%7;x.setDate(x.getDate()-w);return x;}
+const iso=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+const fmtDay=k=>{const x=d(k+'T12:00');return DIAS[x.getDay()]+' '+x.getDate()+' '+MESES[x.getMonth()];};
+const fmtShort=k=>{const x=d(k+'T12:00');return x.getDate()+' '+MESES[x.getMonth()];};
+const hora=s=>s.slice(11,16);
+const isSent=l=>(l.id in overrides)?overrides[l.id]:!!l.enviado;
+const money=n=>'$'+n.toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+let code=(()=>{try{return localStorage.getItem('pg-code')||''}catch(e){return ''}})();
+async function api(method,body,retry){
+  const r=await fetch('/api/leads',{method,cache:'no-store',headers:{'Content-Type':'application/json','x-access-code':code},body:body?JSON.stringify(body):undefined});
+  if(r.status===401&&!retry){const c=prompt('Código de acceso del contestador:');if(!c)throw new Error('Falta el código de acceso.');code=c.trim();try{localStorage.setItem('pg-code',code)}catch(e){}return api(method,body,true);}
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||('Error '+r.status));
+  return j;
+}
+async function load(){
+  try{ data=await api('GET'); }
+  catch(e){ document.getElementById('meta').textContent=e.message||'No se pudo cargar la información.'; return; }
+  overrides=Object.assign({}, data.enviados||{}, store.get());
+  document.getElementById('meta').textContent='Último reporte: '+(data.ultimo_reporte||'')+' · actualizado '+(data.actualizado||'');
+  // semanas
+  const weeks=[...new Set(data.leads.map(l=>iso(monday(d(l.fecha)))))].sort().reverse();
+  const sel=document.getElementById('week');
+  sel.innerHTML=weeks.map((w,i)=>{const a=d(w+'T12:00'),b=new Date(a);b.setDate(b.getDate()+6);return `<option value="${w}">${i===0?'Esta semana · ':''}${a.getDate()} ${MESES[a.getMonth()]} – ${b.getDate()} ${MESES[b.getMonth()]}</option>`}).join('')+'<option value="all">Todas las semanas</option>';
+  sel.value='all'; sel.onchange=render;
+  const ds=document.getElementById('dest'); ds.value=dest; ds.onchange=()=>{dest=ds.value;try{localStorage.setItem('pg-dest',dest)}catch(e){};render();}; document.getElementById('estado').onchange=render;
+  document.getElementById('t-msg').onclick=()=>setTab('msg');
+  document.getElementById('t-met').onclick=()=>setTab('met');
+  render();
+}
+function setTab(t){tab=t;document.getElementById('t-msg').setAttribute('aria-selected',t==='msg');document.getElementById('t-met').setAttribute('aria-selected',t==='met');document.getElementById('v-msg').hidden=t!=='msg';document.getElementById('v-met').hidden=t!=='met';document.getElementById('estado').style.display=t==='msg'?'':'none';document.getElementById('dest').style.display=t==='msg'?'':'none';render();}
+function inWeek(){const w=document.getElementById('week').value;return data.leads.filter(l=>w==='all'||iso(monday(d(l.fecha)))===w);}
+function render(){ tab==='msg'?renderMsg():renderMet(); }
+
+function renderMsg(){
+  const base=inWeek(), est=document.getElementById('estado').value;
+  const av=(data.avisos||[]).filter(Boolean);
+  document.getElementById('avisos').innerHTML=av.length?`<div class="avisos"><b>Antes de enviar</b><ul>${av.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>`:'';
+  const present=Object.keys(GRUPOS).filter(g=>base.some(l=>l.grupo===g));
+  if(grupo!=='todos'&&!present.includes(grupo)) grupo='todos';
+  const ch=document.getElementById('chips');
+  ch.innerHTML=['todos',...present].map(g=>`<button type="button" data-g="${g}" aria-pressed="${grupo===g}">${g==='todos'?'Todos':CORTO[g]} (${g==='todos'?base.length:base.filter(l=>l.grupo===g).length})</button>`).join('');
+  ch.querySelectorAll('button').forEach(b=>b.onclick=()=>{grupo=b.dataset.g;renderMsg();});
+  const sentN=base.filter(isSent).length;
+  document.getElementById('pbar').style.width=base.length?(sentN/base.length*100)+'%':'0';
+  document.getElementById('ptext').textContent=base.length?`${sentN} de ${base.length} enviados en este periodo`:'';
+  let rows=base.filter(l=>grupo==='todos'||l.grupo===grupo).filter(l=>est==='todos'||(est==='env'?isSent(l):!isSent(l)));
+  rows.sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const list=document.getElementById('list');
+  if(!rows.length){list.innerHTML=`<div class="empty"><b>${est==='pend'?'¡Todo enviado!':'Sin leads'}</b>${est==='pend'?'No quedan mensajes pendientes en este periodo.':'No hay leads con estos filtros.'}</div>`;return;}
+  let html='',last='';
+  rows.forEach(l=>{
+    const k=dayKey(l.fecha); if(k!==last){html+=`<div class="day">${fmtDay(k)}</div>`;last=k;}
+    const msgs=(l.mensajes||[]).filter(Boolean), done=isSent(l);
+    const wa=waLink(l.telefono,msgs[0]);
+    html+=`<div class="card ${done?'done':''}">
+      <div class="top"><div>
+        <div class="who">${esc(l.nombre||'Sin nombre')} <span>· ${esc(l.mascota)}</span></div>
+        <div class="tags"><span class="tag g-${l.grupo}">${esc(GRUPOS[l.grupo]||l.grupo)}</span>${l.plan?`<span class="tag">${esc(l.plan)}</span>`:''}<span class="tag">${esc(l.origen||'')}</span><span class="tag">${hora(l.fecha)} h</span></div>
+        <div class="phone">${esc(l.telefono)} <button class="btn" data-copy="${esc(l.telefono)}" type="button">Copiar número</button></div>
+      </div><label class="chk"><input type="checkbox" ${done?'checked':''} data-id="${esc(l.id)}"> Enviado</label></div>
+      ${msgs.map((m,j)=>`<div class="msg">${esc(m)}</div><div class="row">${j===0?`<a class="btn wa" href="${wa}" target="_blank" rel="noopener">Abrir en WhatsApp</a>`:''}<button class="btn" data-copy="${esc(m)}" type="button">Copiar mensaje${msgs.length>1?' '+(j+1):''}</button></div>`).join('')}
+      ${l.nota?`<div class="nota">📝 ${esc(l.nota)}</div>`:''}
+    </div>`;
+  });
+  list.innerHTML=html;
+  list.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const t=b.dataset.copy,lab=b.textContent;try{await navigator.clipboard.writeText(t);b.textContent='¡Copiado!';b.classList.add('ok')}catch(e){b.textContent='No se pudo copiar'}setTimeout(()=>{b.textContent=lab;b.classList.remove('ok')},1500)});
+  list.querySelectorAll('[data-id]').forEach(c=>c.onchange=()=>{const id=c.dataset.id,v=c.checked;overrides[id]=v;const loc=store.get();loc[id]=v;store.set(loc);renderMsg();api('POST',{id,enviado:v}).then(()=>{const l2=store.get();delete l2[id];store.set(l2);}).catch(()=>{});});
+}
+
+function hbars(items,total){
+  if(!items.length) return '<p class="sub">Sin datos en este periodo.</p>';
+  const max=Math.max(1,...items.map(i=>i[1]));
+  return items.map(([lab,v])=>`<div class="hbar" title="${esc(lab)}: ${v}${total?` (${Math.round(v/total*100)}%)`:''}"><div>${esc(lab)}</div><div class="t"><div class="f" style="width:${v/max*100}%"></div></div><div class="v">${v}</div></div>`).join('');
+}
+function renderMet(){
+  const L=inWeek(), n=L.length, w=document.getElementById('week').value;
+  const pag=L.filter(l=>l.pagado||l.grupo==='PAGO');
+  const emit=L.filter(l=>l.grupo==='A'||l.grupo==='PAGO');
+  const prima=pag.reduce((s,l)=>s+(l.precio||0),0);
+  const sent=L.filter(isSent).length;
+  const reach=g=>L.filter(l=>g.includes(l.grupo)).length;
+  const funnel=[['Dejaron datos',n],['Eligieron plan',reach(['D','C','B','A','PAGO'])],['Llegaron al resumen',reach(['C','B','A','PAGO'])],['Emitieron póliza',emit.length],['Pagaron',pag.length]];
+  const count=(f,order)=>{const m={};L.forEach(l=>{const k=f(l);if(k)m[k]=(m[k]||0)+1});return (order||Object.keys(m).sort((a,b)=>m[b]-m[a])).filter(k=>m[k]).map(k=>[k,m[k]]);};
+  // por día
+  let days;
+  if(w==='all'){const ks=[...new Set(L.map(l=>dayKey(l.fecha)))].sort();days=ks;}
+  else{days=[...Array(7)].map((_,i)=>{const x=d(w+'T12:00');x.setDate(x.getDate()+i);return iso(x);});}
+  const perDay=days.map(k=>[k,L.filter(l=>dayKey(l.fecha)===k).length]);
+  const v=document.getElementById('v-met');
+  v.innerHTML=`
+  <div class="kpis">
+    <div class="kpi"><div class="l">Leads</div><div class="n">${n}</div><div class="s">${w==='all'?'en total':'esta semana'}</div></div>
+    <div class="kpi"><div class="l">Pólizas emitidas</div><div class="n">${emit.length}</div><div class="s">${n?Math.round(emit.length/n*100):0}% de los leads</div></div>
+    <div class="kpi"><div class="l">Pagadas</div><div class="n">${pag.length}</div><div class="s">${n?(pag.length/n*100).toFixed(1):0}% de los leads</div></div>
+    <div class="kpi"><div class="l">Prima pagada</div><div class="n">${money(prima)}</div><div class="s">anual, con IVA</div></div>
+    <div class="kpi"><div class="l">Por cobrar</div><div class="n">${money(L.filter(l=>l.grupo==='A').reduce((s,l)=>s+(l.precio||0),0))}</div><div class="s">${L.filter(l=>l.grupo==='A').length} pólizas emitidas sin pago</div></div>
+    <div class="kpi"><div class="l">Mensajes enviados</div><div class="n">${n?Math.round(sent/n*100):0}%</div><div class="s">${sent} de ${n}</div></div>
+  </div>
+  <div class="panel"><h3>Leads por día</h3><p class="sub">Cuándo dejaron sus datos. Pasa el cursor o toca una barra para ver el número.</p><div class="vchart" id="vc"></div></div>
+  <div class="panel"><h3>Embudo</h3><p class="sub">Cuántos llegaron a cada paso del cotizador.</p>${hbars(funnel,n)}</div>
+  <div class="grid2">
+    <div class="panel"><h3>Dónde se quedaron</h3><p class="sub">Etapa actual de cada lead.</p>${hbars(count(l=>GRUPOS[l.grupo],Object.values(GRUPOS)),n)}</div>
+    <div class="panel"><h3>De dónde llegan</h3><p class="sub">Origen del lead.</p>${hbars(count(l=>l.origen),n)}</div>
+    <div class="panel"><h3>Plan elegido</h3><p class="sub">Solo quienes eligieron plan.</p>${hbars(count(l=>l.plan,['Patita segura','Patita super segura','Patita premier']))}</div>
+    <div class="panel"><h3>Perros y gatos</h3><p class="sub">Tipo de mascota.</p>${hbars(count(l=>l.especie==='gato'?'Gatos':'Perros',['Perros','Gatos']),n)}</div>
+  </div>`;
+  drawDays(perDay);
+}
+function drawDays(rows){
+  const el=document.getElementById('vc'); const W=Math.max(320,el.clientWidth||600), H=200, L=30,R=6,T=16,B=28;
+  const max=Math.max(4,...rows.map(r=>r[1])), step=Math.ceil(max/4), top=step*4;
+  const pw=W-L-R, ph=H-T-B, slot=pw/rows.length, bw=Math.min(36,slot*.6);
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Leads por día">`;
+  for(let v=0;v<=top;v+=step){const y=T+ph-ph*v/top;s+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#eee6e9"/><text x="${L-6}" y="${y+4}" text-anchor="end" font-size="11" fill="#7a6273">${v}</text>`;}
+  rows.forEach(([k,v],i)=>{const x=L+slot*i+(slot-bw)/2,h=ph*v/top,y=T+ph-h;
+    if(v>0){const r=Math.min(4,h);s+=`<path d="M${x},${T+ph} V${y+r} Q${x},${y} ${x+r},${y} H${x+bw-r} Q${x+bw},${y} ${x+bw},${y+r} V${T+ph} Z" fill="#A34687"/>`;}
+    s+=`<rect x="${L+slot*i}" y="${T}" width="${slot}" height="${ph}" fill="transparent" data-k="${k}" data-v="${v}" data-x="${x+bw/2}" data-y="${y}"/>`;
+    s+=`<text x="${x+bw/2}" y="${H-10}" text-anchor="middle" font-size="11" fill="#7a6273">${fmtShort(k)}</text>`;});
+  s+=`<line x1="${L}" x2="${W-R}" y1="${T+ph}" y2="${T+ph}" stroke="#c9bcc3"/></svg><div class="tip" id="tip"></div>`;
+  el.innerHTML=s;
+  const tip=document.getElementById('tip'), svg=el.querySelector('svg');
+  el.querySelectorAll('rect[data-k]').forEach(r=>{const show=()=>{const sc=svg.clientWidth/W;tip.style.left=(r.dataset.x*sc)+'px';tip.style.top=(r.dataset.y*sc)+'px';tip.textContent=fmtDay(r.dataset.k)+': '+r.dataset.v+' leads';tip.style.display='block';};r.onmouseenter=show;r.onclick=show;r.onmouseleave=()=>tip.style.display='none';});
+}
+load();
+</script>
+</body>
+</html>

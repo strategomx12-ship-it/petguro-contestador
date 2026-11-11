@@ -135,6 +135,7 @@ select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px
     <button type="button" role="tab" id="t-resp" aria-selected="true">Contestador</button>
     <button type="button" role="tab" id="t-cot" aria-selected="false">Cotizador PDF</button>
     <button type="button" role="tab" id="t-as" aria-selected="false">Asesores</button>
+    <button type="button" role="tab" id="t-leads" aria-selected="false">Leads</button>
   </nav>
 
   <div class="codebox" id="codebox" hidden>
@@ -145,6 +146,8 @@ select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px
       <div class="actions"><button class="btn primary" id="codeok" type="button">Entrar</button><button class="btn ghost" id="codecancel" type="button">Cancelar</button></div>
     </div>
   </div>
+
+  <div id="tab-leads" hidden><iframe id="leadsframe" title="Seguimiento de leads" style="width:100%;border:0;min-height:70vh;display:block"></iframe></div>
 
   <div class="grid" id="tab-resp">
     <section class="card" aria-label="Mensaje del cliente">
@@ -446,15 +449,21 @@ function render(d){
   $('quickRefine').addEventListener('click',e=>{ const c=e.target.closest('.chip'); if(c) doRefine(c.textContent); });
 }
 window.pgFetchJson = (url, body) => callApi(body, url);
-const SUBS={resp:'Pega el mensaje del cliente y te redacto la respuesta, lista para copiar.',cot:'Llena los datos y genera la cotización en PDF con el diseño de PetGuro.',as:'Resuelve dudas del producto y descarga las condiciones y formatos.'};
-const HASH={resp:'',cot:'#cotizador',as:'#asesores'};
+const SUBS={resp:'Pega el mensaje del cliente y te redacto la respuesta, lista para copiar.',cot:'Llena los datos y genera la cotización en PDF con el diseño de PetGuro.',as:'Resuelve dudas del producto y descarga las condiciones y formatos.',leads:'Mensajes de seguimiento y métricas de los leads, actualizados cada día desde tu correo.'};
+const HASH={resp:'',cot:'#cotizador',as:'#asesores',leads:'#leads'};
 function setTab(t){
-  ['resp','cot','as'].forEach(k=>{ $('t-'+k).setAttribute('aria-selected', t===k); $('tab-'+k).hidden = t!==k; });
+  ['resp','cot','as','leads'].forEach(k=>{ $('t-'+k).setAttribute('aria-selected', t===k); $('tab-'+k).hidden = t!==k; });
+  if(t==='leads') abrirLeads();
   $('tab-sub').textContent = SUBS[t];
   try{ history.replaceState(null,'', HASH[t] || location.pathname); }catch(e){}
 }
-['resp','cot','as'].forEach(k=>$('t-'+k).onclick=()=>setTab(k));
-if(location.hash==='#cotizador') setTab('cot'); else if(location.hash==='#asesores') setTab('as');
+function abrirLeads(){
+  const f=$('leadsframe'); if(f.src) return;
+  f.onload=()=>{ try{ const doc=f.contentDocument; const fit=()=>{ f.style.height=Math.max(doc.documentElement.scrollHeight, 400)+'px'; }; new ResizeObserver(fit).observe(doc.body); fit(); }catch(e){} };
+  f.src='/leads/';
+}
+['resp','cot','as','leads'].forEach(k=>$('t-'+k).onclick=()=>setTab(k));
+if(location.hash==='#cotizador') setTab('cot'); else if(location.hash==='#asesores') setTab('as'); else if(location.hash==='#leads') setTab('leads');
 </script>
 <script type="module">
 import { iniciarCotizador } from '/cotizador/app.js';
